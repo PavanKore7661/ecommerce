@@ -1,6 +1,7 @@
 package com.pavan.ecommerce.security;
 
 import com.pavan.ecommerce.service.CustomUserDetailsService;
+import com.pavan.ecommerce.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,8 +20,8 @@ import java.io.IOException;
 public class JwtAuthenticationFilter
         extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
+    private final JwtService jwtService;
 
     @Override
     protected void doFilterInternal(
@@ -36,7 +37,7 @@ public class JwtAuthenticationFilter
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
-            email = jwtUtil.extractUsername(jwt);
+            email = jwtService.extractUsername(jwt);
         }
 
         if (email != null &&
@@ -45,7 +46,7 @@ public class JwtAuthenticationFilter
             UserDetails userDetails =
                     userDetailsService.loadUserByUsername(email);
 
-            if (jwtUtil.validateToken(jwt, email)) {
+            if (jwtService.validateToken(jwt, email)) {
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(
