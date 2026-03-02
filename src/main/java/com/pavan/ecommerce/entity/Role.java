@@ -10,8 +10,11 @@ import lombok.*;
 @Table(name = "roles")
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Role extends BaseEntity{
 
-    @Column(unique = true)
+    @Column(unique = true, nullable = false)
     private String name; // ADMIN, USER
 }
