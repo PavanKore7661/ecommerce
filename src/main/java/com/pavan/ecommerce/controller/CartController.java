@@ -9,6 +9,7 @@ import com.pavan.ecommerce.repository.CartRepository;
 import com.pavan.ecommerce.repository.ProductRepository;
 import com.pavan.ecommerce.repository.UserRepository;
 import com.pavan.ecommerce.service.JwtService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,12 +22,17 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/cart")
 public class CartController {
 
+    @Autowired
     private UserRepository userRepository;
+    @Autowired
     private CartRepository cartRepository;
+    @Autowired
     private ProductRepository productRepository;
+    @Autowired
     private CartItemRepository cartItemRepository;
 
     private String getLoggedInUserEmail() {
