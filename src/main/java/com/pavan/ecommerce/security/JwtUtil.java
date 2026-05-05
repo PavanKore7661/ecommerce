@@ -11,7 +11,7 @@ public class JwtUtil {
 
     private final String SECRET = "very_secret_key_change_later";
 
-    private final long ACCESS_TOKEN_VALIDITY = 15 * 60 * 1000;
+    private final long ACCESS_TOKEN_VALIDITY = 90 * 60 * 1000;
     private final long REFRESH_TOKEN_VALIDITY = 7 * 24 * 60 * 60 * 1000;
 
     public String generateAccessToken(String email) {
