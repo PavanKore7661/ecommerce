@@ -1,6 +1,7 @@
 package com.pavan.ecommerce.controller;
 
 import com.pavan.ecommerce.entity.*;
+import com.pavan.ecommerce.enums.OrderStatus;
 import com.pavan.ecommerce.repository.*;
 import com.pavan.ecommerce.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ public class OrderController {
 
         Order order = new Order();
         order.setUser(user);
-        order.setStatus("CREATED");
+        order.setStatus(OrderStatus.CREATED);
 
         List<OrderItem> orderItems = new ArrayList<>();
 

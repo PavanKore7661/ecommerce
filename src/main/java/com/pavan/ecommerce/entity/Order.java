@@ -1,5 +1,6 @@
 package com.pavan.ecommerce.entity;
 
+import com.pavan.ecommerce.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,7 +21,8 @@ public class Order extends BaseEntity {
 
     private Double totalAmount;
 
-    private String status; // CREATED, PAID, SHIPPED
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status; // CREATED, PAYMENT_PENDING, PAID, FAILED, SHIPPED, DELIVERED
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<OrderItem> items;
