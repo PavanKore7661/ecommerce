@@ -6,6 +6,9 @@ import com.pavan.ecommerce.enums.OrderStatus;
 import com.pavan.ecommerce.enums.PaymentStatus;
 import com.pavan.ecommerce.repository.OrderRepository;
 import com.pavan.ecommerce.repository.PaymentRepository;
+import com.pavan.ecommerce.service.EmailService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +22,10 @@ public class PaymentController {
     private OrderRepository orderRepository;
     @Autowired
     private PaymentRepository paymentRepository;
+    @Autowired
+    private EmailService emailService;
 
+    private static final Logger log = LoggerFactory.getLogger(PaymentController.class);
 
     @PostMapping("/initiate")
     public String initiatePayment(@RequestParam Long orderId,
@@ -38,7 +44,7 @@ public class PaymentController {
                 .build();
 
         paymentRepository.save(payment);
-
+        log.info("Payment initiated for Payment Id: {}", payment.getId());
         return payment.getPaymentId();
     }
 
@@ -55,6 +61,11 @@ public class PaymentController {
         if (success) {
             payment.setStatus(PaymentStatus.SUCCESS);
             order.setStatus(OrderStatus.PAID);
+            emailService.sendOrderConfirmation(
+                    order.getUser().getEmail(),
+                    order.getId(),
+                    order.getTotalAmount()
+            );
         } else {
             payment.setStatus(PaymentStatus.FAILED);
             order.setStatus(OrderStatus.FAILED);
@@ -62,7 +73,7 @@ public class PaymentController {
 
         paymentRepository.save(payment);
         orderRepository.save(order);
-
+        log.info("Payment Completed for Payment Id: {}", payment.getId());
         return success ? "Payment Successful" : "Payment Failed";
     }
 }

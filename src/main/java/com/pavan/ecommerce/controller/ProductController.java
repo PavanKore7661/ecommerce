@@ -56,6 +56,13 @@ public class ProductController {
                 .categoryName(product.getCategory().getName())
                 .build();
     }
+    @GetMapping("/{id}")
+    public ProductResponse getProductById(@PathVariable Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Product not found"));
+         return mapToResponse(product);
+    }
 
     @GetMapping
     public Page<Product> getAllProducts(
