@@ -4,6 +4,8 @@ import com.pavan.ecommerce.entity.*;
 import com.pavan.ecommerce.enums.OrderStatus;
 import com.pavan.ecommerce.repository.*;
 import com.pavan.ecommerce.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +27,8 @@ public class OrderController {
     private OrderRepository orderRepository;
     @Autowired
     private JwtService jwtService;
+
+    private static final Logger log = LoggerFactory.getLogger(OrderController.class);
 
     @PostMapping("/place")
     public String placeOrder() {
@@ -71,7 +75,7 @@ public class OrderController {
 
         // Clear cart
         cartItemRepository.deleteAll(cartItems);
-
+        log.info("Order created for user: {}", email);
         return "Order placed successfully";
     }
 }
