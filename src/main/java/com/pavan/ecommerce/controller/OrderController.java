@@ -7,6 +7,7 @@ import com.pavan.ecommerce.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -27,55 +28,24 @@ public class OrderController {
     private OrderRepository orderRepository;
     @Autowired
     private JwtService jwtService;
+    @Autowired
+    private OrderService orderService;
 
     private static final Logger log = LoggerFactory.getLogger(OrderController.class);
 
     @PostMapping("/place")
     public String placeOrder() {
-
-        String email = jwtService.getLoggedInUserEmail();
-
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Cart cart = cartRepository.findByUser(user)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
-
-        List<CartItem> cartItems = cartItemRepository.findByCart(cart);
-
-        if (cartItems.isEmpty()) {
-            throw new RuntimeException("Cart is empty");
-        }
-
-        double total = 0;
-
-        Order order = new Order();
-        order.setUser(user);
-        order.setStatus(OrderStatus.CREATED);
-
-        List<OrderItem> orderItems = new ArrayList<>();
-
-        for (CartItem item : cartItems) {
-
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(order);
-            orderItem.setProduct(item.getProduct());
-            orderItem.setQuantity(item.getQuantity());
-            orderItem.setPrice(item.getProduct().getPrice());
-
-            total += item.getQuantity() * item.getProduct().getPrice();
-
-            orderItems.add(orderItem);
-        }
-
-        order.setTotalAmount(total);
-        order.setItems(orderItems);
-
-        orderRepository.save(order);
-
-        // Clear cart
-        cartItemRepository.deleteAll(cartItems);
-        log.info("Order created for user: {}", email);
-        return "Order placed successfully";
+      return orderService.placeOrder();
     }
+
+    @GetMapping
+    public List<Order> getUserOrders(Authentication authentication) {
+        return orderService.getUserOrders(authentication.getName());
+    }
+
+    @GetMapping("/{id}")
+    public Order getOrderById(@PathVariable Long id) {
+        return orderService.getOrderById(id);
+    }
+
 }
