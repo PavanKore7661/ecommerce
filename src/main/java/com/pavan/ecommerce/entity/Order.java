@@ -1,5 +1,6 @@
 package com.pavan.ecommerce.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.pavan.ecommerce.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,6 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 public class Order extends BaseEntity {
 
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
