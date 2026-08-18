@@ -4,18 +4,25 @@ import com.pavan.ecommerce.dto.ProductRequest;
 import com.pavan.ecommerce.dto.ProductResponse;
 import com.pavan.ecommerce.entity.Category;
 import com.pavan.ecommerce.entity.Product;
+import com.pavan.ecommerce.exception.ProductAlreadyExistsException;
 import com.pavan.ecommerce.repository.CategoryRepository;
 import com.pavan.ecommerce.repository.ProductRepository;
+import com.pavan.ecommerce.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -24,16 +31,19 @@ public class ProductController {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    @Autowired
+    private ProductService productService;
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ProductResponse createProduct(@RequestBody ProductRequest productReq) {
 
         Long categoryId = productReq.getCategoryId();
-
+        if(productRepository.existsByName(productReq.getName())){
+            throw new ProductAlreadyExistsException("Product already exists");
+        }
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
-
         Product product = Product.builder()
                 .name(productReq.getName())
                 .description(productReq.getDescription())
@@ -46,6 +56,13 @@ public class ProductController {
 
         return mapToResponse(saved);
     }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Product updateProduct(@PathVariable Long id, @RequestBody ProductRequest request) {
+        return productService.updateProduct( id, request);
+    }
+
     private ProductResponse mapToResponse(Product product) {
         return ProductResponse.builder()
                 .id(product.getId())
@@ -54,6 +71,7 @@ public class ProductController {
                 .price(product.getPrice())
                 .stockQuantity(product.getStockQuantity())
                 .categoryName(product.getCategory().getName())
+                .imageUrl(product.getImageUrl())
                 .build();
     }
     @GetMapping("/{id}")
@@ -62,6 +80,12 @@ public class ProductController {
                 .orElseThrow(() ->
                         new RuntimeException("Product not found"));
          return mapToResponse(product);
+    }
+
+    @GetMapping("/all")
+    public List<Product> getProducts() {
+        List<Product> products = productRepository.findAll();
+        return products;
     }
 
     @GetMapping
@@ -134,5 +158,11 @@ public class ProductController {
         Page<Product> products = productRepository.findAll(spec, pageable);
 
         return products.map(this::mapToResponse);
+    }
+
+    @PostMapping("/{id}/image")
+    public ResponseEntity<String> uploadImage(@PathVariable Long id, @RequestParam("image") MultipartFile image) {
+        productService.uploadImage(id, image);
+        return ResponseEntity.ok("Image uploaded successfully");
     }
 }

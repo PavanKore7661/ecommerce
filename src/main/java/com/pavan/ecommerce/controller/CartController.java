@@ -74,7 +74,8 @@ public class CartController {
         }
 
         cartItemRepository.save(cartItem);
-
+        product.setStockQuantity(product.getStockQuantity() - 1);
+        productRepository.save(product);
         return "Product added to cart";
     }
 
@@ -120,12 +121,16 @@ public class CartController {
 
         CartItem item = cartItemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cart item not found"));
+
         // Security check
         if (!item.getCart().getId().equals(cart.getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("This item does not belong to your cart");
         }
         cartItemRepository.delete(item);
+        Product product = item.getProduct();
+        product.setStockQuantity(product.getStockQuantity() + item.getQuantity());
+        productRepository.save(product);
         return ResponseEntity.ok("Product removed from cart");
     }
 
@@ -147,6 +152,14 @@ public class CartController {
         // Increase quantity by 1
         cartItem.setQuantity(cartItem.getQuantity() + 1);
 
+        Product product = cartItem.getProduct();
+
+        if(product.getStockQuantity()<=0){
+            System.out.println(product.getName() + " is out of stock");
+            return ResponseEntity.ok("out of stock");
+        }
+        product.setStockQuantity(product.getStockQuantity() - 1);
+        productRepository.save(product);
         cartItemRepository.save(cartItem);
 
         return ResponseEntity.ok("Quantity increased");
@@ -168,23 +181,19 @@ public class CartController {
                 .orElseThrow(() -> new RuntimeException("Cart item not found"));
 
         int currentQty = cartItem.getQuantity();
+        cartItem.setQuantity(currentQty - 1);
+        Product product = cartItem.getProduct();
+        product.setStockQuantity(product.getStockQuantity() + 1);
+        productRepository.save(product);
 
         // If quantity becomes 0,
         // remove item from cart
 
         if (currentQty <= 1) {
-
             cartItemRepository.delete(cartItem);
-
             return ResponseEntity.ok("Product removed from cart");
         }
-
-        // Decrease quantity
-
-        cartItem.setQuantity(currentQty - 1);
-
         cartItemRepository.save(cartItem);
-
         return ResponseEntity.ok("Quantity decreased");
     }
 }

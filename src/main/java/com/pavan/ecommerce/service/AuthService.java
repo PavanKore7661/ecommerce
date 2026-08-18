@@ -26,6 +26,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+
     public AuthResponse register(RegisterRequest request) {
 
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -33,8 +34,7 @@ public class AuthService {
         }
 
         Role role = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() ->
-                        new RuntimeException("Role not found"));
+                .orElseThrow(() -> new RuntimeException("Role not found"));
 
         User user = User.builder()
                 .name(request.getFullName())
@@ -48,20 +48,19 @@ public class AuthService {
 
         String token = jwtService.generateAccessToken(user.getEmail());
 
-        return new AuthResponse(token);
+        return new AuthResponse(token,user.getRole().getName(),user.getEmail());
     }
 
     public AuthResponse login(LoginRequest request) {
 
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
+                        request.getEmail(),request.getPassword())
         );
-
+        User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
         String token = jwtService.generateAccessToken(request.getEmail());
         log.info("User registered: {}",request.getEmail());
-        return new AuthResponse(token);
+        return new AuthResponse(token, user.getRole().getName(), user.getEmail());
     }
 }

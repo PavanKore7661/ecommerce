@@ -1,4 +1,4 @@
-package com.pavan.ecommerce.config;
+package com.pavan.ecommerce.exception;
 
 public class ResourceNotFoundException extends  RuntimeException{
     public ResourceNotFoundException(String message) {

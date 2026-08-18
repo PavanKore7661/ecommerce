@@ -1,5 +1,7 @@
 package com.pavan.ecommerce.controller;
 
+import com.pavan.ecommerce.dto.AdminOrderResponse;
+import com.pavan.ecommerce.dto.UpdateOrderStatusRequest;
 import com.pavan.ecommerce.entity.*;
 import com.pavan.ecommerce.enums.OrderStatus;
 import com.pavan.ecommerce.repository.*;
@@ -7,6 +9,7 @@ import com.pavan.ecommerce.service.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,6 +49,18 @@ public class OrderController {
     @GetMapping("/{id}")
     public Order getOrderById(@PathVariable Long id) {
         return orderService.getOrderById(id);
+    }
+
+    @GetMapping("/admin/orders")
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<AdminOrderResponse> getAllOrders() {
+        return orderService.getAllOrders();
+    }
+
+    @PutMapping("/admin/orders/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public Order updateOrderStatus(@PathVariable Long id,@RequestBody UpdateOrderStatusRequest request) {
+        return orderService.updateOrderStatus(id, request.getStatus());
     }
 
 }
