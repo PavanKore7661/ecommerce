@@ -1,6 +1,7 @@
 package com.pavan.ecommerce.service;
 
 import com.pavan.ecommerce.controller.OrderController;
+import com.pavan.ecommerce.dto.AdminOrderResponse;
 import com.pavan.ecommerce.entity.*;
 import com.pavan.ecommerce.enums.OrderStatus;
 import com.pavan.ecommerce.repository.*;
@@ -53,7 +54,6 @@ public class OrderService {
         Order order = new Order();
         order.setUser(user);
         order.setStatus(OrderStatus.CREATED);
-        com.pavan.ecommerce.entity.Payment payment =paymentService.initiatePayment(order.getId(), "ONLINE");
         List<OrderItem> orderItems = new ArrayList<>();
 
         for (CartItem item : cartItems) {
@@ -72,8 +72,9 @@ public class OrderService {
         order.setTotalAmount(total);
         order.setItems(orderItems);
 
-        orderRepository.save(order);
-        paymentService.completePayment(payment.getPaymentId(), true);
+        Order savedOrder = orderRepository.save(order);
+        com.pavan.ecommerce.entity.Payment payment =paymentService.initiatePayment(savedOrder.getId(), "ONLINE");
+        //paymentService.completePayment(payment.getPaymentId(), true);
         // Clear cart
         cartItemRepository.deleteAll(cartItems);
         log.info("Order created for user: {}", email);
@@ -88,5 +89,28 @@ public class OrderService {
     public Order getOrderById( Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() ->new RuntimeException("Order not found"));
+    }
+
+    public List<AdminOrderResponse> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+
+        return orders.stream()
+                .map(order -> AdminOrderResponse.builder()
+                        .id(order.getId())
+                        .customerName(order.getUser().getName())
+                        .totalAmount(order.getTotalAmount())
+                        .status(order.getStatus())
+                        .createdAt(order.getCreatedAt())
+                        .itemCount(order.getItems().size())
+                        .build())
+                .toList();
+    }
+
+    public Order updateOrderStatus(Long orderId,OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                        .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        order.setStatus(status);
+        return orderRepository.save(order);
     }
 }

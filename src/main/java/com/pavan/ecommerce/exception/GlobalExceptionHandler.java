@@ -1,4 +1,4 @@
-package com.pavan.ecommerce.config;
+package com.pavan.ecommerce.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,5 +32,10 @@ public class GlobalExceptionHandler {
         error.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
 
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(ProductAlreadyExistsException.class)
+    public ResponseEntity<String>  handleProductAlreadyExists(ProductAlreadyExistsException ex){
+        return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }
